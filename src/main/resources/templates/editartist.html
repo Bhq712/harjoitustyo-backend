@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Artist</title>
+</head>
+<body>
+<h1>Edit Artist</h1>
+
+<form th:action="@{/editartist}" th:object="${artist}" method="post">
+    <input type="hidden" th:field="*{artistId}" />
+
+    <label>Name:</label>
+    <input type="text" th:field="*{name}" />
+    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div><br>
+
+    <label>Genre:</label>
+    <input type="text" th:field="*{genre}" />
+    <div th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div><br>
+
+    <div th:each="album, aStat : *{albums}">
+        <h3>Album [[${aStat.index + 1}]]</h3>
+        <input type="hidden" th:field="*{albums[__${aStat.index}__].albumId}" />
+
+        <label>Title:</label>
+        <input type="text" th:field="*{albums[__${aStat.index}__].title}" />
+        <div th:if="${#fields.hasErrors('albums[__${aStat.index}__].title')}" th:errors="*{albums[__${aStat.index}__].title}"></div><br>
+
+        <label>Year:</label>
+        <input type="number" th:field="*{albums[__${aStat.index}__].releaseYear}" /><br>
+
+        <ul>
+            <li th:each="song, sStat : *{albums[__${aStat.index}__].songs}">
+                <input type="hidden" th:field="*{albums[__${aStat.index}__].songs[__${sStat.index}__].songId}" />
+                <label>Song:</label>
+                <input type="text" th:field="*{albums[__${aStat.index}__].songs[__${sStat.index}__].title}" />
+                <div th:if="${#fields.hasErrors('albums[__${aStat.index}__].songs[__${sStat.index}__].title')}"
+                     th:errors="*{albums[__${aStat.index}__].songs[__${sStat.index}__].title}"></div>
+
+                <label>Duration:</label>
+                <input type="number" step="0.01" th:field="*{albums[__${aStat.index}__].songs[__${sStat.index}__].duration}" /> min
+            </li>
+        </ul>
+        <hr>
+    </div>
+
+    <button type="submit">Save changes</button>
+</form>
+<a href="/musiclist">Back to list</a>
+</body>
+</html>

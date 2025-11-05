@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+    xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add artist, album and songs</title>
+</head>
+<body>
+<h1>Add Artist</h1>
+
+<form id="artistForm" th:action="@{/addartist}" th:object="${artist}" method="post" onsubmit="reindexAll()">
+    <input type="hidden" th:field="*{artistId}" />
+
+    <label>Name:</label>
+    <input type="text" th:field="*{name}" required />
+    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div><br>
+
+    <label>Genre:</label>
+    <input type="text" th:field="*{genre}" required />
+    <div th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div><br>
+
+    <h3>Album</h3>
+    <label>Title:</label>
+    <input type="text" th:field="*{albums[0].title}" />
+    <div th:if="${#fields.hasErrors('albums[0].title')}" th:errors="*{albums[0].title}"></div><br>
+
+    <label>Year:</label>
+    <input type="number" th:field="*{albums[0].releaseYear}" /><br><br>
+
+    <h3>Songs</h3>
+    <table id="songsTable">
+        <thead>
+            <tr><th>Title</th><th>Duration</th><th></th></tr>
+        </thead>
+        <tbody>
+            <tr th:each="song, sStat : *{albums[0].songs}">
+                <input type="hidden" th:field="*{albums[0].songs[__${sStat.index}__].songId}" />
+                <td><input type="text" th:field="*{albums[0].songs[__${sStat.index}__].title}" /></td>
+                <td><input type="number" step="0.01" th:field="*{albums[0].songs[__${sStat.index}__].duration}" /></td>
+                <td><button type="button" onclick="removeRow(this)">Delete</button></td>
+            </tr>
+        </tbody>
+    </table>
+    <button type="button" onclick="addSongRow()">Add song</button>
+    <button type="submit">Save</button>
+</form>
+
+<script>
+    function addSongRow() {
+        const tbody = document.querySelector('#songsTable tbody');
+        const idx = tbody.querySelectorAll('tr').length;
+        const row = document.createElement('tr');
+        row.innerHTML = `
+            <td><input type="text" name="albums[0].songs[${idx}].title" placeholder="Song title" /></td>
+            <td><input type="number" step="0.01" name="albums[0].songs[${idx}].duration" placeholder="Duration" /></td>
+            <td><button type="button" onclick="removeRow(this)">Delete</button></td>
+        `;
+        tbody.appendChild(row);
+    }
+
+    function removeRow(btn) {
+        btn.closest('tr').remove();
+    }
+
+    function reindexAll() {
+        const tbody = document.querySelector('#songsTable tbody');
+        const rows = tbody.querySelectorAll('tr');
+        rows.forEach((tr, i) => {
+            tr.querySelectorAll('input').forEach(inp => {
+                inp.name = inp.name.replace(/\[\d+\]/, `[${i}]`);
+            });
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        if (document.querySelectorAll('#songsTable tbody tr').length === 0) addSongRow();
+    });
+</script>
+</body>
+</html>

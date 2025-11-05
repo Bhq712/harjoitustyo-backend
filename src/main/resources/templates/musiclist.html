@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+  xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music List</title>
+</head>
+<body>
+  <div class="col-md-4">
+		<h3>Welcome <span sec:authentication="name"></span></h3>
+	</div>
+  <class="col-md-4" style="padding:20px 0">
+        <form th:action="@{/logout}" method="post">
+            <input type="submit" value="Log Out" class="btn btn-sm btn-danger"/>
+        </form>
+    </div>
+  <h1>Artists and Albums</h1>
+
+  <a sec:authorize="hasAuthority('ADMIN')" href="/addartist">
+    <button>Add Artist, Album and Songs</button>
+  </a>
+
+  <ul>
+    <li th:each="artist : ${artists}">
+      <h2 th:text="${artist.name} + ' (' + ${artist.genre} + ')'"></h2>
+
+      <!-- edit ja delete painikkeet -->
+      <a sec:authorize="hasAuthority('ADMIN')" th:href="@{'/editartist/' + ${artist.artistId}}">
+        <button>Edit</button>
+      </a>
+
+      <form sec:authorize="hasAuthority('ADMIN')" th:action="@{'/deleteartist/' + ${artist.artistId}}" method="post" style="display:inline;">
+        <button type="submit" onclick="return confirm('Are you sure you want to delete this artist and all related albums and songs?')">
+          Delete
+        </button>
+      </form>
+      <br><br>
+      <div th:if="${#lists.isEmpty(artist.albums)}">
+        <em>No albums</em>
+      </div>
+
+      <ul th:if="${!#lists.isEmpty(artist.albums)}">
+        <li th:each="album : ${artist.albums}">
+          <strong th:text="${album.title} + ' (' + ${album.releaseYear} + ')'"></strong>
+
+          <div th:if="${#lists.isEmpty(album.songs)}">
+            <em>No songs</em>
+          </div>
+
+          <ol th:if="${!#lists.isEmpty(album.songs)}">
+            <li th:each="song : ${album.songs}" th:text="${song.title} + ' — ' + ${song.duration} + ' min'"></li>
+            <br>
+          </ol>
+        </li>
+      </ul>
+
+      <hr>
+    </li>
+  </ul>
+</body>
+</html>
