@@ -97,7 +97,7 @@ public class ArtistController {
 }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @GetMapping("/deleteartist/{id}")
+    @PostMapping("/deleteartist/{id}")
     @Transactional
     public String deleteArtist(@PathVariable("id") Long artistId) {
     artistRepository.deleteById(artistId);

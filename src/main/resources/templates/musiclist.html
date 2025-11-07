@@ -39,7 +39,7 @@
       <div th:if="${#lists.isEmpty(artist.albums)}">
         <em>No albums</em>
       </div>
-
+      
       <ul th:if="${!#lists.isEmpty(artist.albums)}">
         <li th:each="album : ${artist.albums}">
           <strong th:text="${album.title} + ' (' + ${album.releaseYear} + ')'"></strong>

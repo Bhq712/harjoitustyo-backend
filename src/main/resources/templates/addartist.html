@@ -1,81 +1,137 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org"
-    xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Add artist, album and songs</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Add artist, albums and songs</title>
 </head>
 <body>
 <h1>Add Artist</h1>
 
 <form id="artistForm" th:action="@{/addartist}" th:object="${artist}" method="post" onsubmit="reindexAll()">
-    <input type="hidden" th:field="*{artistId}" />
+  <input type="hidden" th:field="*{artistId}" />
 
-    <label>Name:</label>
-    <input type="text" th:field="*{name}" required />
-    <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div><br>
+  <label>Name:</label>
+  <input type="text" th:field="*{name}" required />
+  <div th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></div><br>
 
-    <label>Genre:</label>
-    <input type="text" th:field="*{genre}" required />
-    <div th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div><br>
+  <label>Genre:</label>
+  <input type="text" th:field="*{genre}" required />
+  <div th:if="${#fields.hasErrors('genre')}" th:errors="*{genre}"></div><br>
 
-    <h3>Album</h3>
-    <label>Title:</label>
-    <input type="text" th:field="*{albums[0].title}" />
-    <div th:if="${#fields.hasErrors('albums[0].title')}" th:errors="*{albums[0].title}"></div><br>
+  <div id="albumsContainer">
+    <div class="albumBlock" th:each="album, aStat : *{albums}">
+      <h3>Album [[${aStat.index + 1}]]</h3>
 
-    <label>Year:</label>
-    <input type="number" th:field="*{albums[0].releaseYear}" /><br><br>
+      <label>Title:</label>
+      <input type="text" th:field="*{albums[__${aStat.index}__].title}" /><br>
 
-    <h3>Songs</h3>
-    <table id="songsTable">
+      <label>Year:</label>
+      <input type="number" th:field="*{albums[__${aStat.index}__].releaseYear}" /><br>
+
+      <table class="songsTable">
         <thead>
-            <tr><th>Title</th><th>Duration</th><th></th></tr>
+        <tr><th>Title</th><th>Duration</th><th></th></tr>
         </thead>
         <tbody>
-            <tr th:each="song, sStat : *{albums[0].songs}">
-                <input type="hidden" th:field="*{albums[0].songs[__${sStat.index}__].songId}" />
-                <td><input type="text" th:field="*{albums[0].songs[__${sStat.index}__].title}" /></td>
-                <td><input type="number" step="0.01" th:field="*{albums[0].songs[__${sStat.index}__].duration}" /></td>
-                <td><button type="button" onclick="removeRow(this)">Delete</button></td>
-            </tr>
+        <tr th:each="song, sStat : *{albums[__${aStat.index}__].songs}">
+          <td><input type="text" th:field="*{albums[__${aStat.index}__].songs[__${sStat.index}__].title}" /></td>
+          <td><input type="number" step="0.01" th:field="*{albums[__${aStat.index}__].songs[__${sStat.index}__].duration}" /></td>
+          <td><button type="button" onclick="removeRow(this)">Delete</button></td>
+        </tr>
         </tbody>
-    </table>
-    <button type="button" onclick="addSongRow()">Add song</button>
-    <button type="submit">Save</button>
+      </table>
+      <button type="button" onclick="addSongRow(this)">Add song</button>
+      <button type="button" onclick="removeAlbum(this)">Delete album</button>
+      <hr>
+    </div>
+  </div>
+
+  <button type="button" onclick="addAlbum()">Add new album</button>
+  <br><br>
+  <button type="submit">Save</button>
 </form>
 
 <script>
-    function addSongRow() {
-        const tbody = document.querySelector('#songsTable tbody');
-        const idx = tbody.querySelectorAll('tr').length;
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td><input type="text" name="albums[0].songs[${idx}].title" placeholder="Song title" /></td>
-            <td><input type="number" step="0.01" name="albums[0].songs[${idx}].duration" placeholder="Duration" /></td>
+  // Lisää uusi albumi, jossa on 2 tyhjää biisiriviä
+  function addAlbum() {
+    const container = document.getElementById('albumsContainer');
+    const albumIndex = container.querySelectorAll('.albumBlock').length;
+
+    const albumDiv = document.createElement('div');
+    albumDiv.classList.add('albumBlock');
+    albumDiv.innerHTML = `
+      <h3>Album ${albumIndex + 1}</h3>
+      <label>Title:</label>
+      <input type="text" name="albums[${albumIndex}].title" placeholder="Album title" /><br>
+      <label>Year:</label>
+      <input type="number" name="albums[${albumIndex}].releaseYear" placeholder="Year" /><br>
+
+      <table class="songsTable">
+        <thead><tr><th>Title</th><th>Duration</th><th></th></tr></thead>
+        <tbody>
+          <tr>
+            <td><input type="text" name="albums[${albumIndex}].songs[0].title" placeholder="Song title" /></td>
+            <td><input type="number" step="0.01" name="albums[${albumIndex}].songs[0].duration" placeholder="Duration" /></td>
             <td><button type="button" onclick="removeRow(this)">Delete</button></td>
-        `;
-        tbody.appendChild(row);
-    }
+          </tr>
+          <tr>
+            <td><input type="text" name="albums[${albumIndex}].songs[1].title" placeholder="Song title" /></td>
+            <td><input type="number" step="0.01" name="albums[${albumIndex}].songs[1].duration" placeholder="Duration" /></td>
+            <td><button type="button" onclick="removeRow(this)">Delete</button></td>
+          </tr>
+        </tbody>
+      </table>
+      <button type="button" onclick="addSongRow(this)">Add song</button>
+      <button type="button" onclick="removeAlbum(this)">Delete album</button>
+      <hr>
+    `;
+    container.appendChild(albumDiv);
+  }
 
-    function removeRow(btn) {
-        btn.closest('tr').remove();
-    }
+  // Lisää uusi biisirivi tiettyyn albumiin
+  function addSongRow(button) {
+    const albumDiv = button.closest('.albumBlock');
+    const songsTable = albumDiv.querySelector('.songsTable tbody');
+    const songCount = songsTable.querySelectorAll('tr').length;
+    const albumIndex = Array.from(document.querySelectorAll('.albumBlock')).indexOf(albumDiv);
 
-    function reindexAll() {
-        const tbody = document.querySelector('#songsTable tbody');
-        const rows = tbody.querySelectorAll('tr');
-        rows.forEach((tr, i) => {
-            tr.querySelectorAll('input').forEach(inp => {
-                inp.name = inp.name.replace(/\[\d+\]/, `[${i}]`);
-            });
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td><input type="text" name="albums[${albumIndex}].songs[${songCount}].title" placeholder="Song title" /></td>
+      <td><input type="number" step="0.01" name="albums[${albumIndex}].songs[${songCount}].duration" placeholder="Duration" /></td>
+      <td><button type="button" onclick="removeRow(this)">Delete</button></td>
+    `;
+    songsTable.appendChild(row);
+  }
+
+  // Poista biisirivi
+  function removeRow(btn) {
+    btn.closest('tr').remove();
+  }
+
+  // Poista albumiblokki
+  function removeAlbum(btn) {
+    btn.closest('.albumBlock').remove();
+    reindexAll();
+  }
+
+  // Reindeksoi kaikkien albumien ja biisien indeksit ennen tallennusta
+  function reindexAll() {
+    const albums = document.querySelectorAll('.albumBlock');
+    albums.forEach((album, aIndex) => {
+      album.querySelectorAll('input[name]').forEach(input => {
+        input.name = input.name.replace(/albums\[\d+\]/, `albums[${aIndex}]`);
+      });
+      const songs = album.querySelectorAll('.songsTable tbody tr');
+      songs.forEach((tr, sIndex) => {
+        tr.querySelectorAll('input[name]').forEach(inp => {
+          inp.name = inp.name.replace(/songs\[\d+\]/, `songs[${sIndex}]`);
         });
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-        if (document.querySelectorAll('#songsTable tbody tr').length === 0) addSongRow();
+      });
     });
+  }
 </script>
 </body>
 </html>
